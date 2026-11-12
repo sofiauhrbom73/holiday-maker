@@ -1,8 +1,7 @@
 # Holiday Maker — User Stories
 
 These stories describe the operator's needs and provide a basis for writing
-manual test cases. The acceptance criteria state observable results; they do
-not prescribe a particular console-menu design.
+manual test cases. The acceptance criteria state observable results; they do not prescribe a particular console-menu design.
 
 ## US-01 — Register a customer
 
@@ -15,8 +14,7 @@ not prescribe a particular console-menu design.
 - The operator can enter and save a customer's name and contact details.
 - The application confirms a successful registration and makes the customer
   available for selection.
-- Missing required information or invalid input is reported without crashing
-  the application.
+- Missing required information or invalid input is reported without        crashing the application.
 
 ## US-02 — Select an existing customer
 
@@ -78,8 +76,7 @@ not prescribe a particular console-menu design.
 - The application checks room availability again when saving the booking.
 - The application rejects a booking whose guest count exceeds the room's
   maximum capacity.
-- The application rejects a booking if its dates overlap another booking for
-  the same room, including when one stay completely contains the other.
+- The application rejects a booking if its dates overlap another booking for the same room, including when one stay completely contains the other.
 - A check-out date must be later than the check-in date.
 - A stay from 10 December to 13 December is counted as three nights.
 - The booking is limited to the supported December 2026 period; check-out on

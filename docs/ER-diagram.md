@@ -1,13 +1,13 @@
-# Holiday Maker – E/R-diagram
+# Holiday Maker – ER diagram
 
 ## Diagram
 
 ```mermaid
 erDiagram
-    ACCOMMODATION ||--o| FACILITY : "har"
-    ACCOMMODATION ||--o{ ROOM : "har"
-    ROOM ||--o{ BOOKING : "bokas i"
-    CUSTOMER ||--o{ BOOKING : "gör"
+    ACCOMMODATION ||--o| FACILITY : "has"
+    ACCOMMODATION ||--o{ ROOM : "has"
+    ROOM ||--o{ BOOKING : "is booked in"
+    CUSTOMER ||--o{ BOOKING : "makes"
 
     ACCOMMODATION {
         int accommodation_id PK
@@ -45,93 +45,95 @@ erDiagram
     }
 ```
 
-## Tabeller, nycklar och begränsningar
+## Tables, keys and constraints
 
-### ACCOMMODATION (boende)
-| Kolumn | Typ | Regler |
+### ACCOMMODATION
+| Column | Type | Rules |
 |---|---|---|
-| accommodation_id | INT | **Primärnyckel**, auto-increment |
+| accommodation_id | INT | **Primary key**, auto-increment |
 | name | VARCHAR(100) | NOT NULL |
 | city | VARCHAR(100) | NOT NULL |
 | distance_to_beach_m | INT | NOT NULL, CHECK >= 0 |
 | distance_to_center_m | INT | NOT NULL, CHECK >= 0 |
 | rating | INT | NOT NULL, CHECK BETWEEN 1 AND 5 |
 
-### FACILITY (faciliteter)
-| Kolumn | Typ | Regler |
+### FACILITY
+| Column | Type | Rules |
 |---|---|---|
-| accommodation_id | INT | **Primärnyckel och främmande nyckel** → ACCOMMODATION(accommodation_id) |
+| accommodation_id | INT | **Primary key and foreign key** → ACCOMMODATION(accommodation_id) |
 | has_pool | BOOLEAN | NOT NULL, default 0, CHECK IN (0, 1) |
 | has_restaurant | BOOLEAN | NOT NULL, default 0, CHECK IN (0, 1) |
 
-Primärnyckeln innebär att det kan finnas högst en facilitetsrad per boende.
-Främmande nyckeln innebär att varje facilitetsrad måste tillhöra ett befintligt
-boende. Databasen kräver däremot inte att ett boende har en facilitetsrad:
-skapa därför en sådan för varje boende, helst i samma transaktion. En saknad
-rad betyder okända faciliteter, inte att faciliteterna saknas.
+The primary key allows at most one facility row per accommodation. The
+foreign key requires each facility row to belong to an existing accommodation.
+The database does not require every accommodation to have a facility row, so
+create one for each accommodation, preferably in the same transaction. A
+missing row means the facilities are unknown, not that they are absent.
 
-### ROOM (rum)
-| Kolumn | Typ | Regler |
+### ROOM
+| Column | Type | Rules |
 |---|---|---|
-| room_id | INT | **Primärnyckel**, auto-increment |
-| accommodation_id | INT | **Främmande nyckel** → ACCOMMODATION(accommodation_id), NOT NULL |
+| room_id | INT | **Primary key**, auto-increment |
+| accommodation_id | INT | **Foreign key** → ACCOMMODATION(accommodation_id), NOT NULL |
 | room_number | VARCHAR(20) | NOT NULL |
 | max_guests | INT | NOT NULL, CHECK > 0 |
 | price_per_night | DECIMAL(10,2) | NOT NULL, CHECK > 0 |
 
-Extra: `UNIQUE (accommodation_id, room_number)`. Rumsnummer är unika inom ett boende, men samma nummer får finnas på olika boenden.
+Additional constraint: `UNIQUE (accommodation_id, room_number)`. Room numbers
+are unique within an accommodation but may be reused at different accommodations.
 
-### CUSTOMER (kund)
-| Kolumn | Typ | Regler |
+### CUSTOMER
+| Column | Type | Rules |
 |---|---|---|
-| customer_id | INT | **Primärnyckel**, auto-increment |
+| customer_id | INT | **Primary key**, auto-increment |
 | name | VARCHAR(100) | NOT NULL |
 | email | VARCHAR(150) | NOT NULL, **UNIQUE** |
 | phone | VARCHAR(30) | NOT NULL |
 
-### BOOKING (bokning)
-| Kolumn | Typ | Regler |
+### BOOKING
+| Column | Type | Rules |
 |---|---|---|
-| booking_id | INT | **Primärnyckel**, auto-increment (= bokningsnummer) |
-| customer_id | INT | **Främmande nyckel** → CUSTOMER(customer_id), NOT NULL |
-| room_id | INT | **Främmande nyckel** → ROOM(room_id), NOT NULL |
+| booking_id | INT | **Primary key**, auto-increment (= booking number) |
+| customer_id | INT | **Foreign key** → CUSTOMER(customer_id), NOT NULL |
+| room_id | INT | **Foreign key** → ROOM(room_id), NOT NULL |
 | check_in | DATE | NOT NULL |
 | check_out | DATE | NOT NULL |
 | guests | INT | NOT NULL, CHECK > 0 |
 
 Extra constraints:
 - `CHECK (check_out > check_in)`
-- `CHECK (check_in >= '2026-12-01' AND check_out <= '2027-01-01')`. Alla rum kan bokas under december 2026, och utcheckning den 1 januari är ok.
+- `CHECK (check_in >= '2026-12-01' AND check_out <= '2027-01-01')`. Rooms can be booked during December 2026, with checkout on 1 January allowed.
 
-## Relationer
-| Relation | Kardinalitet | Implementeras med |
+## Relationships
+| Relationship | Cardinality | Implemented with |
 |---|---|---|
-| Boende – Faciliteter | 1 till 0 eller 1 | `FACILITY.accommodation_id` PK och FK |
-| Boende – Rum | 1 till många | `ROOM.accommodation_id` FK |
-| Kund – Bokning | 1 till många | `BOOKING.customer_id` FK |
-| Rum – Bokning | 1 till många | `BOOKING.room_id` FK |
+| Accommodation – Facility | 1 to 0 or 1 | `FACILITY.accommodation_id` PK and FK |
+| Accommodation – Room | 1 to many | `ROOM.accommodation_id` FK |
+| Customer – Booking | 1 to many | `BOOKING.customer_id` FK |
+| Room – Booking | 1 to many | `BOOKING.room_id` FK |
 
-Varje bokning gäller exakt en kund och ett rum. En kund kan ha flera bokningar. Ett rum kan ha många bokningar, men inte överlappande.
+Each booking is for exactly one customer and one room. A customer can have
+multiple bookings. A room can have multiple bookings, but they must not overlap.
 
-## Normalisering och designval
-- Boendets uppgifter lagras en gång i ACCOMMODATION och inte per rum (3NF).
-- Pool och restaurang lagras i en separat FACILITY-rad kopplad till boendet.
-- Kunduppgifter lagras en gång i CUSTOMER och inte per bokning.
-- **Antal nätter och totalpris lagras inte.** I MySQL beräknas de med `DATEDIFF(check_out, check_in) * price_per_night`. Det undviker dubbellagring.
-- Priset ligger på rummet och är detsamma under hela perioden (enligt förenklingen). Om rummets pris ändras påverkas dock även totalpriset för tidigare bokningar. För att bevara priset vid bokning kan man i stället spara nattpriset på bokningen.
-- `guests <= max_guests` kan inte uttryckas som CHECK över flera tabeller. Kontrollera det i SQL/applikationen vid bokning och ändring.
-- Valfritt: en separat CITY-tabell kan motiveras i reflektionen, men det behövs inte här.
-- ON DELETE: undvik CASCADE från kund/rum till bokning (använd `NO ACTION`/`RESTRICT`), så att historik inte raderas av misstag. Avbokning är ett explicit `DELETE` på BOOKING.
+## Normalization and design choices
+- Accommodation details are stored once in ACCOMMODATION rather than per room (3NF).
+- Pool and restaurant availability are stored in a separate FACILITY row linked to the accommodation.
+- Customer details are stored once in CUSTOMER rather than per booking.
+- **The number of nights and total price are not stored.** In MySQL the total is calculated with `DATEDIFF(check_out, check_in) * price_per_night`, avoiding duplicate stored values.
+- The price belongs to the room and remains the same throughout the stay, as specified by the assignment. Changing the room price also changes the displayed total for existing bookings. To preserve the price at booking time, the nightly price could instead be stored on the booking.
+- `guests <= max_guests` cannot be expressed as a CHECK across tables. The application checks it when creating or changing a booking.
+- A separate CITY table could be discussed in the reflection, but is not needed here.
+- Foreign keys use `RESTRICT` rather than cascading customer or room deletion to bookings, preventing accidental loss of booking history. Cancellation explicitly deletes the BOOKING row.
 
-## Tillgänglighetsvillkor
-Ett rum är **upptaget** om det finns en bokning som uppfyller:
+## Availability condition
+A room is **occupied** if an existing booking satisfies:
 
 ```sql
 b.check_in < @checkOut AND b.check_out > @checkIn
 ```
 
-- Utcheckning samma dag som ny incheckning räknas som ledigt (strikta `<` och `>`).
-- Fångar även att en period omsluter en annan.
+- Checkout on the day of a new check-in is allowed because the comparisons use strict `<` and `>`.
+- The condition also detects one period completely containing another.
 
 ```sql
 SELECT a.name, a.city, r.room_number, r.max_guests, r.price_per_night
@@ -150,8 +152,8 @@ WHERE a.city = @city
 ORDER BY r.price_per_night ASC;
 ```
 
-Ange `@requirePool` och `@requireRestaurant` som 1 när respektive filter är
-aktivt, annars 0. `LEFT JOIN` visar även boenden utan facilitetsrad när filtren
-är avstängda; en saknad rad uppfyller inte ett aktivt facilitetsfilter.
-Maxavstånd läggs till som parametriserade villkor, och sorteringen är
-`r.price_per_night ASC` eller `a.rating DESC`.
+Set `@requirePool` and `@requireRestaurant` to 1 when the corresponding filter
+is active, otherwise 0. The `LEFT JOIN` also includes accommodations without a
+facility row when the filters are off; a missing row does not satisfy an active
+facility filter. Maximum distances are added as parameterized conditions, and
+the sort order is `r.price_per_night ASC` or `a.rating DESC`.
