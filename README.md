@@ -95,3 +95,90 @@ You must do the following, and may do so together in a small group:
 - Start with an ER diagram showing tables, relationships, primary keys and foreign keys.
 - Choose appropriate data types and use relevant constraints, such as `NOT NULL`, `UNIQUE` and `CHECK`.
 - Avoid unnecessary duplication of stored data (normalise) and be able to explain how you have organised the information.
+
+## Run the console application
+
+The application requires .NET 10 and a running MySQL 8.0.16 or later server.
+Create the database you want to use in DBeaver before starting the app.
+The MySQL user needs permission to create tables, read and write data, and
+query `information_schema`.
+
+On first start, the app creates the tables if the selected database is empty.
+It then inserts the sample data if all five project tables are empty.
+An initialization marker prevents sample data being inserted again on later
+starts. If project tables already contain data, the app keeps it and does not
+try to fill missing sample data. If only some required tables exist, setup stops
+with an error; inspect the database rather than deleting existing data.
+MySQL table creation is not transactional, so an interrupted schema creation
+may also need manual inspection.
+
+Alternatively, run `Schema.sql` followed by `Data.sql` in DBeaver on a new,
+empty database. Run the entire data script only once. If it fails, stop
+execution and run `ROLLBACK` in the same SQL session before investigating.
+Neither normal app startup nor these scripts drop the database.
+
+Each person running the project should use their own MySQL server or an
+authorized account on a shared server. Prefer a dedicated MySQL user with
+access only to the project database rather than using `root`.
+
+The app reads its connection details from the
+`HOLIDAY_MAKER_CONNECTION_STRING` environment variable. Do not put real
+passwords or connection strings in source code, documentation, or files
+committed to Git.
+
+**Git Bash in VS Code:**
+
+```bash
+read -rs -p "MySQL connection string: " HOLIDAY_MAKER_CONNECTION_STRING
+echo
+export HOLIDAY_MAKER_CONNECTION_STRING
+```
+
+At the prompt, enter a connection string in this format:
+
+```text
+Server=localhost;Port=3306;Database=holiday_maker;User ID=YOUR_MYSQL_USER;Password=YOUR_MYSQL_PASSWORD;
+```
+
+Replace the placeholders with your own MySQL username and password, and adjust
+the server and port if needed. The input is not shown on screen or saved in
+shell command history. The variable is available only in the current terminal
+session and is inherited by processes started from it. Close the terminal or
+run `unset HOLIDAY_MAKER_CONNECTION_STRING` when finished. Environment
+variables are not an encrypted secrets vault.
+
+### Select a database
+
+After setting the environment variable, choose an environment:
+
+```bash
+dotnet run --project Holiday-Maker.csproj -- dev
+dotnet run --project Holiday-Maker.csproj -- test
+dotnet run --project Holiday-Maker.csproj -- prod
+```
+
+Run one command at a time. `dev` selects `holiday_maker_dev`, `test` selects
+`holiday_maker_test`, and `prod` selects `holiday_maker1`. The selected name
+overrides the database in the connection string; the server and credentials
+stay the same. Each database must already exist and the MySQL user must have
+access to it. Create only the databases you need in DBeaver.
+
+The app prints the selected database before connecting and shows it in the
+menu. Exit with option `0` before starting it with another environment.
+Without an environment argument, the app continues to use the database in
+the connection string:
+
+```bash
+dotnet run --project Holiday-Maker.csproj
+```
+
+These databases have independent data. Check the selected database before
+running tests that change or delete data. The app inserts sample data into an
+empty database, including an empty database intended for production. Selecting
+`prod` does not provide production security or prevent destructive operations.
+
+The program
+supports registering/selecting customers, searching and filtering available
+rooms, creating bookings, viewing bookings, changing guest counts and
+cancelling bookings. Room availability is checked again inside a transaction
+when a booking is saved.
