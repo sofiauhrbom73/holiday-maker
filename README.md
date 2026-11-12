@@ -98,10 +98,15 @@ You must do the following, and may do so together in a small group:
 
 ## Run the console application
 
-The application requires .NET 10 and a running MySQL 8.0.16 or later server.
-Create the database you want to use in DBeaver before starting the app.
-The MySQL user needs permission to create tables, read and write data, and
-query `information_schema`.
+The application requires .NET 10, a running MySQL 8.0.16 or later server, and
+your own MySQL connection details. After setting the connection string below,
+run `dotnet run --project Holiday-Maker.csproj`.
+
+If the database named in the connection string does not exist, the application
+creates it. This requires `CREATE` database permission. The application user
+also needs permission to create tables, read and write data, and query
+`information_schema`. If the account cannot create databases, an administrator
+can create the database and grant access before the first run.
 
 On first start, the app creates the tables if the selected database is empty.
 It then inserts the sample data if all five project tables are empty.
@@ -112,10 +117,21 @@ with an error; inspect the database rather than deleting existing data.
 MySQL table creation is not transactional, so an interrupted schema creation
 may also need manual inspection.
 
-Alternatively, run `Schema.sql` followed by `Data.sql` in DBeaver on a new,
-empty database. Run the entire data script only once. If it fails, stop
+Alternatively, run `CreateDatabase.sql` in DBeaver to create `holiday_maker`,
+refresh the connection, select the database, and run `Schema.sql` followed by
+`Data.sql`. Those scripts use the selected database; they do not hard-code its
+name, so they also work with the other environments. Run them only on a new,
+empty database, and run the entire data script only once. If it fails, stop
 execution and run `ROLLBACK` in the same SQL session before investigating.
 Neither normal app startup nor these scripts drop the database.
+
+For a single-file setup instead, import `HolidayMaker-sample-dump.sql` into a
+MySQL server. The dump creates and selects `holiday_maker`, then creates its
+tables and inserts the original sample data. Use it only when that database
+does not exist or is empty; it is not intended to update an existing
+installation. Choose either the dump, the three SQL scripts, or automatic
+first-start setup, not more than one for the same database. The dump was
+generated from the scripts, not from an existing customer database.
 
 Each person running the project should use their own MySQL server or an
 authorized account on a shared server. Prefer a dedicated MySQL user with
@@ -160,8 +176,8 @@ dotnet run --project Holiday-Maker.csproj -- prod
 Run one command at a time. `dev` selects `holiday_maker_dev`, `test` selects
 `holiday_maker_test`, and `prod` selects `holiday_maker1`. The selected name
 overrides the database in the connection string; the server and credentials
-stay the same. Each database must already exist and the MySQL user must have
-access to it. Create only the databases you need in DBeaver.
+stay the same. A missing selected database is created on first start if the
+MySQL user has permission.
 
 The app prints the selected database before connecting and shows it in the
 menu. Exit with option `0` before starting it with another environment.

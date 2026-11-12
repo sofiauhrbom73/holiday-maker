@@ -1,5 +1,6 @@
 -- Holiday Maker test data for MySQL 8.0.16 or later.
--- Select the holiday_maker database in DBeaver and run Schema.sql first.
+-- Select your intended Holiday Maker database in DBeaver and run Schema.sql first.
+-- The application also runs this script on first start in its selected database.
 -- Run this script only once, on empty accommodation, facility, customer,
 -- room and booking tables. It uses fixed IDs so the relationships are clear.
 -- It never deletes existing data. If an error occurs, stop the script and

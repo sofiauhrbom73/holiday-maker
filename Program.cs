@@ -65,7 +65,26 @@ internal static class Program
         {
             Console.WriteLine($"Connecting to database: {builder.Database}");
             await using var connection = new MySqlConnection(builder.ConnectionString);
-            await connection.OpenAsync();
+            try
+            {
+                await connection.OpenAsync();
+            }
+            catch (MySqlException exception) when (exception.Number == 1049)
+            {
+                var serverBuilder = new MySqlConnectionStringBuilder(builder.ConnectionString)
+                {
+                    Database = ""
+                };
+                await using var serverConnection = new MySqlConnection(serverBuilder.ConnectionString);
+                await serverConnection.OpenAsync();
+                string databaseName = builder.Database.Replace("`", "``");
+                await using var createDatabase = new MySqlCommand(
+                    $"CREATE DATABASE IF NOT EXISTS `{databaseName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;",
+                    serverConnection);
+                await createDatabase.ExecuteNonQueryAsync();
+                Console.WriteLine($"Database {builder.Database} is ready.");
+                await connection.OpenAsync();
+            }
             Console.WriteLine("Connected to the Holiday Maker database.");
             await DatabaseInitializer.InitializeAsync(connection);
             await RunMenuAsync(connection);
