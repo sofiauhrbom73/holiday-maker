@@ -98,5 +98,5 @@ You must do the following, and may do so together in a small group:
 
 ## Run the console application
 
-See [HolidayMakerRun.md](./HolidayMakerRun.md) for database setup, connection
+See [HolidayMakerRun.md](./docs/HolidayMakerRun.md) for database setup, connection
 details and instructions for running the application.

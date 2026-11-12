@@ -42,8 +42,8 @@ Perform the cancellation test **after tests 1–3**, since those tests rely on t
 
 The xUnit project exercises the console application and its MySQL queries. It
 includes scenarios for all ten user stories and the manual cases above. Each database test
-creates a uniquely named temporary database, initializes it with `Schema.sql`
-and `Data.sql` through normal application startup, and drops only that database
+creates a uniquely named temporary database, initializes it with [Schema.sql](../database/Schema.sql)
+and [Data.sql](../database/Data.sql) through normal application startup, and drops only that database
 afterward. The tests do not use or reset your existing application databases.
 
 Use a **dedicated test MySQL server/account** with permission to create and drop

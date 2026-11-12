@@ -19,15 +19,16 @@ with an error; inspect the database rather than deleting existing data.
 MySQL table creation is not transactional, so an interrupted schema creation
 may also need manual inspection.
 
-Alternatively, run `CreateDatabase.sql` in DBeaver to create `holiday_maker`,
-refresh the connection, select the database, and run `Schema.sql` followed by
-`Data.sql`. Those scripts use the selected database; they do not hard-code its
+Alternatively, run [CreateDatabase.sql](../database/CreateDatabase.sql) in DBeaver
+to create `holiday_maker`, refresh the connection, select the database, and run
+[Schema.sql](../database/Schema.sql) followed by [Data.sql](../database/Data.sql).
+Those scripts use the selected database; they do not hard-code its
 name, so they also work with the other environments. Run them only on a new,
 empty database, and run the entire data script only once. If it fails, stop
 execution and run `ROLLBACK` in the same SQL session before investigating.
 Neither normal app startup nor these scripts drop the database.
 
-For a single-file setup instead, import `HolidayMaker-sample-dump.sql` into a
+For a single-file setup instead, import [HolidayMaker-sample-dump.sql](../database/HolidayMaker-sample-dump.sql) into a
 MySQL server. The dump creates and selects `holiday_maker`, then creates its
 tables and inserts the original sample data. Use it only when that database
 does not exist or is empty; it is not intended to update an existing
