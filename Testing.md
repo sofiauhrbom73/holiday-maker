@@ -80,7 +80,7 @@ script prompts without displaying the input. The local file is ignored by Git
 but stores the password as **plain text**, so keep it private and use only a
 dedicated test account. Do not commit or share it.
 
-Use the same connection-string format described in the README; the database
+Use the same connection-string format described in [HolidayMakerRun.md](./HolidayMakerRun.md); the database
 field is ignored because the tests create their own databases. If a test process
 is forcibly terminated, a database named `holiday_maker_test_<random id>` may
 remain and must be inspected and removed manually. Tests fail explicitly if the
