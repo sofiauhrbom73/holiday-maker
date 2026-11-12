@@ -1,5 +1,8 @@
 /bin
 /obj
+/HolidayMaker.Tests/bin
+/HolidayMaker.Tests/obj
+/.env.test.local
 /.vs
 /*.user
 /*.suo

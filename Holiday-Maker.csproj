@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="HolidayMaker.Tests\**\*.cs" />
     <EmbeddedResource Include="Schema.sql" LogicalName="HolidayMaker.Schema.sql" />
     <EmbeddedResource Include="Data.sql" LogicalName="HolidayMaker.Data.sql" />
   </ItemGroup>
