@@ -100,3 +100,8 @@ You must do the following, and may do so together in a small group:
 
 See [HolidayMakerRun.md](./docs/HolidayMakerRun.md) for database setup, connection
 details and instructions for running the application.
+
+## Testing
+
+- [Manual testing](./docs/Manual-Testing.md) — test cases and recorded results.
+- [Automated testing](./docs/Testing.md) — setup and instructions for running the tests.
