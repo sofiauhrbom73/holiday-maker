@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using MySqlConnector;
 
+// Prepares the selected database on startup without replacing existing data.
 internal static class DatabaseInitializer
 {
     private static readonly string[] RequiredTables =
@@ -14,7 +15,7 @@ internal static class DatabaseInitializer
             throw new InvalidOperationException("Select a database in the connection string before starting.");
         }
 
-        // MySQL named locks serialize first-run setup across app instances.
+        // Only one app instance can set up this database at a time.
         string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(connection.Database)));
         string lockName = "holiday:" + hash[..48];
         await using var acquire = new MySqlCommand("SELECT GET_LOCK(@name, 30);", connection);
@@ -37,6 +38,7 @@ internal static class DatabaseInitializer
         }
     }
 
+    // Create missing tables in an empty database and add sample data only once.
     private static async Task InitializeLockedAsync(MySqlConnection connection)
     {
         var existingTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -64,7 +66,8 @@ internal static class DatabaseInitializer
                 "No data was changed; inspect it in DBeaver before continuing.");
         }
 
-        // Older versions of the schema did not have this marker table.
+        // This setup record prevents sample data from being added again.
+        // Create the table if an older database does not already have it.
         await using (var command = new MySqlCommand(
             """
             CREATE TABLE IF NOT EXISTS holiday_maker_setup (
@@ -120,6 +123,7 @@ internal static class DatabaseInitializer
         Console.WriteLine("Sample data added.");
     }
 
+    // Run a setup SQL script embedded in the application.
     private static async Task ExecuteResourceAsync(MySqlConnection connection, string name)
     {
         await using Stream stream = typeof(DatabaseInitializer).Assembly.GetManifestResourceStream(name)

@@ -2,6 +2,7 @@ using System.Data;
 using System.Globalization;
 using MySqlConnector;
 
+// Connects to MySQL and handles the operator's booking workflow.
 internal static class Program
 {
     private static readonly DateOnly FirstBookableDate = new(2026, 12, 1);
@@ -71,12 +72,15 @@ internal static class Program
             }
             catch (MySqlException exception) when (exception.Number == 1049)
             {
+                // Error 1049 means the selected database does not exist yet.
+                // Connect to the server without a database so it can be created.
                 var serverBuilder = new MySqlConnectionStringBuilder(builder.ConnectionString)
                 {
                     Database = ""
                 };
                 await using var serverConnection = new MySqlConnection(serverBuilder.ConnectionString);
                 await serverConnection.OpenAsync();
+                // Database names cannot be SQL parameters; escape identifier quotes.
                 string databaseName = builder.Database.Replace("`", "``");
                 await using var createDatabase = new MySqlCommand(
                     $"CREATE DATABASE IF NOT EXISTS `{databaseName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;",
@@ -105,6 +109,7 @@ internal static class Program
 
     private static async Task RunMenuAsync(MySqlConnection connection)
     {
+        // The selected customer is kept only for this application session.
         int? selectedCustomerId = null;
         string? selectedCustomerName = null;
 
@@ -293,6 +298,7 @@ internal static class Program
             ? "r.price_per_night ASC, a.rating DESC"
             : "a.rating DESC, r.price_per_night ASC";
 
+        // NOT EXISTS excludes any room with a booking overlapping the requested stay.
         string sql = $"""
             SELECT r.room_id, a.name, a.city, r.room_number, r.max_guests,
                    r.price_per_night, a.rating
@@ -466,6 +472,7 @@ internal static class Program
         }
     }
 
+    // Calculate totals from the room's current nightly price when bookings are displayed.
     private static async Task ShowBookingsAsync(MySqlConnection connection, int customerId)
     {
         await using var command = new MySqlCommand(
@@ -561,6 +568,7 @@ internal static class Program
             : "No booking with that number belongs to the selected customer.");
     }
 
+    // Keep stays within December 2026; checkout on 1 January is allowed.
     private static (DateOnly CheckIn, DateOnly CheckOut) ReadStayDates()
     {
         while (true)
@@ -684,6 +692,7 @@ internal static class Program
         }
     }
 
+    // MySQL DATE values need no time of day, so use midnight for the parameter.
     private static DateTime ToDatabaseDate(DateOnly date) =>
         date.ToDateTime(TimeOnly.MinValue);
 

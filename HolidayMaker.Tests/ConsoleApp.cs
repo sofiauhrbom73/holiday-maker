@@ -5,6 +5,7 @@ using Xunit;
 
 namespace HolidayMaker.Tests;
 
+// Drives the real console application with scripted input and captures its output.
 internal sealed class ConsoleApp
 {
     private readonly string connectionString;
@@ -54,6 +55,7 @@ internal sealed class ConsoleApp
         }
     }
 
+    // Pause at room selection so a test can change the database before booking.
     public async Task<string> RunWithInterruptionAsync(string beforePrompt, string afterPrompt, Func<Task> action)
     {
         // Feed the first part while reading until the room-selection prompt.
@@ -126,6 +128,7 @@ internal sealed class ConsoleApp
     }
 }
 
+// Gives each database test its own seeded database and removes it afterward.
 public abstract class DatabaseTest : IAsyncLifetime
 {
     private string? databaseName;
